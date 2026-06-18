@@ -13,11 +13,9 @@ module testbench;
                   .clk(clk),
                   .rst_n(rst_n),
 
-                  //.rd1(rd1),
                   .addr_r1(addr_r1),
                   .data_r1(data_r1),
 
-                  //.rd2(rd2),
                   .addr_r2(addr_r2),
                   .data_r2(data_r2),
 
