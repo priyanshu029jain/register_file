@@ -42,7 +42,7 @@ module testbench;
     addr_rd = 0;
 
      // monitor result
-    $monitor("%t \t %b %d\t%h \t &b %d\t%h", $time,   wr,addr_wr,data_in,   rd,addr_rd,data_out);
+    $monitor("%t \t %b %d\t%h \t %b %d\t%h", $time,   wr,addr_wr,data_in,   rd,addr_rd,data_out);
 
     // Write operation
     #4 wr = 1;
