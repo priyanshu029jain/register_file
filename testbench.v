@@ -42,7 +42,7 @@ module testbench;
   begin
     // Initialize signals
     clk = 0;
-    rst_n =1;
+    rst_n =0;
     wr = 0;
     addr_w = 0;
     data_w = 0;
@@ -57,10 +57,11 @@ module testbench;
    // =========================================================================
     // 1. Write Operations (1W Port Active)
     // =========================================================================
-    #4;
+    #8;
     wr  = 1'b1;
     rd1 = 1'b0;
     rd2 = 1'b0;
+    rst_n = 1'b1;
 
     #10; data_w = 8'hDE; addr_w = 4'h2; // Write DE to Addr 2
     #10; data_w = 8'hAD; addr_w = 4'h4; // Write AD to Addr 4
