@@ -5,7 +5,7 @@ module testbench;
   // Testbench signal
   reg [7:0] data_w;
   reg [3:0] addr_r1, addr_r2, addr_w;
-  reg clk, wr, rd1, rd2, rst_n;
+  reg clk, wr, rst_n;
   wire [7:0] data_r1, data_r2;
 
   // Instantiate DUT
@@ -13,11 +13,11 @@ module testbench;
                   .clk(clk),
                   .rst_n(rst_n),
 
-                  .rd1(rd1),
+                  //.rd1(rd1),
                   .addr_r1(addr_r1),
                   .data_r1(data_r1),
 
-                  .rd2(rd2),
+                  //.rd2(rd2),
                   .addr_r2(addr_r2),
                   .data_r2(data_r2),
 
@@ -46,50 +46,52 @@ module testbench;
     wr = 0;
     addr_w = 0;
     data_w = 0;
-    rd1 = 0;
     addr_r1 = 0;
-    rd2 = 0;
     addr_r2 = 0;
 
     // monitor result
-    $monitor("%t \t %b %d\t%h \t %b %d\t%h \t %b %d\t%h", $time,   wr,addr_w,data_w,   rd1,addr_r1,data_r1,   rd2,addr_r2,data_r2);
+    $monitor("%t \t %b %d\t%h \t  %d\t%h \t %d\t%h", $time,   wr,addr_w,data_w,   addr_r1,data_r1,   addr_r2,data_r2);
 
-   // =========================================================================
-    // 1. Write Operations (1W Port Active)
+
+ // =========================================================================
+    // INITIALIZATION & PRIMING
     // =========================================================================
     #8;
-    wr  = 1'b1;
-    rd1 = 1'b0;
-    rd2 = 1'b0;
     rst_n = 1'b1;
+    wr    = 1'b1; // Keep Write Port Active
 
-    #10; data_w = 8'hDE; addr_w = 4'h2; // Write DE to Addr 2
-    #10; data_w = 8'hAD; addr_w = 4'h4; // Write AD to Addr 4
-    #10; data_w = 8'hBE; addr_w = 4'hA; // Write BE to Addr A
-    #10; data_w = 8'hEF; addr_w = 4'h3; // Write EF to Addr 3
+    // Cycle 1: Prime the first register
+    #10; 
+    data_w  = 8'hDE; addr_w  = 4'h2; // Write DE to Addr 2
+    addr_r1 = 4'h0;  addr_r2 = 4'h0; // Reading zeroes for now
 
     // =========================================================================
-    // 2. Dual Read Operations (Parallel 2R Ports Active)
+    // FULL PARALLEL PIPELINE EXECUTION (3 Operations running simultaneously)
     // =========================================================================
-    #4;
-    wr  = 1'b0; // Disable writing
-    rd1 = 1'b1; // Activate Read Port 1
-    rd2 = 1'b1; // Activate Read Port 2
 
-    // Parallel Cycle 1: Read Addr A on Port 1 AND Addr 2 on Port 2 simultaneously
+    // Cycle 2: Write to Addr 4 WHILE reading the fresh data from Addr 2
     #10; 
-    addr_r1 = 4'hA;  // data_r1 will display 8'hBE
-    addr_r2 = 4'h2;  // data_r2 will display 8'hDE
+    data_w  = 8'hAD; addr_w  = 4'h4; // Write AD to Addr 4
+    addr_r1 = 4'h2;                  // data_r1 should instantly display 8'hDE
+    addr_r2 = 4'h0; 
 
-    // Parallel Cycle 2: Read Addr 3 on Port 1 AND Addr 4 on Port 2 simultaneously
+    // Cycle 3: Write to Addr A WHILE reading Addr 4 AND checking a back-to-back read on Addr 2
     #10; 
-    addr_r1 = 4'h3;  // data_r1 will display 8'hEF
-    addr_r2 = 4'h4;  // data_r2 will display 8'hAD
-    
-    // End of test sequence
+    data_w  = 8'hBE; addr_w  = 4'hA; // Write BE to Addr A
+    addr_r1 = 4'h4;                  // data_r1 should instantly display 8'hAD
+    addr_r2 = 4'h2;                  // data_r2 continues to display 8'hDE
+
+    // Cycle 4: THE ULTIMATE BYPASS TEST (Write and Read the exact same address simultaneously)
+    #10; 
+    data_w  = 8'hEF; addr_w  = 4'h3; // Write EF to Addr 3
+    addr_r1 = 4'h3;                  // CRITICAL: raddr1 == waddr! data_r1 must show 8'hEF mid-clock via bypass!
+    addr_r2 = 4'hA;                  // data_r2 should display 8'hBE (written in previous cycle)
+
+    // Cycle 5: Read the final written value from Addr 3 on a clean cycle
     #10;
-    rd1 = 1'b0;
-    rd2 = 1'b0;
+    wr      = 1'b0;                  // Disable writing to settle the bus
+    addr_r1 = 4'h3;                  // data_r1 displays 8'hEF from the internal matrix now
+    addr_r2 = 4'h4;                  // data_r2 displays 8'hAD
 
     // Finish simulation
     #10 $finish;

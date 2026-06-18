@@ -7,12 +7,12 @@ module register_file # (
     input wire rst_n,
 
     // Read Port 1 (Combinational)
-    input wire rd1,
+    //input wire rd1,
     input  wire [ADDR_WIDTH -1:0]   addr_r1,
     output reg [DATA_WIDTH -1:0]   data_r1,
 
     // Read Port 2 (Combinational)
-    input wire rd2,
+    //input wire rd2,
     input  wire [ADDR_WIDTH -1:0]   addr_r2,
     output reg [DATA_WIDTH -1:0]   data_r2,
 
@@ -47,8 +47,6 @@ module register_file # (
 
   always @(*)
   begin
-    if(rd1)
-    begin
       if(!rst_n)
         data_r1 = {DATA_WIDTH{1'b0}};
       else if (addr_r1 == addr_w)
@@ -56,14 +54,10 @@ module register_file # (
         data_r1 = data_w;
       else
         data_r1 = register_bank[addr_r1];
-    end
-    else data_r1 = {DATA_WIDTH{1'bz}};
   end
 
   always @(*)
   begin
-    if(rd2)
-    begin
       if(!rst_n)
         data_r2 = {DATA_WIDTH{1'b0}};
       else if (addr_r2 == addr_w)
@@ -71,8 +65,6 @@ module register_file # (
         data_r2 = data_w;
       else
         data_r2 = register_bank[addr_r2];
-    end
-    else data_r2 = {DATA_WIDTH{1'bz}};
   end
 
 endmodule
