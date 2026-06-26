@@ -1,7 +1,7 @@
-
 module register_file # (
     parameter DATA_WIDTH = 8,
-    parameter ADDR_WIDTH = 4
+    parameter ADDR_WIDTH = 4,
+    parameter BANK_SIZE = 8
   ) (
     input wire clk,
     input wire rst_n,
@@ -20,11 +20,8 @@ module register_file # (
     input  wire [DATA_WIDTH -1:0]   data_w
   );
 
-  //number of registers in bank
-  localparam registers = 2**ADDR_WIDTH;
-
   // declaring the register bank
-  reg [DATA_WIDTH:0] register_bank [0:registers -1];
+  reg [DATA_WIDTH - 1:0] register_bank [0: BANK_SIZE -1];
 
 
   integer i;
@@ -34,7 +31,7 @@ module register_file # (
   begin :write
     if(!rst_n)
     begin
-      for(i =0; i < registers -1; i= i+1)
+      for(i =0; i < BANK_SIZE -1; i= i+1)
         register_bank[i] <= {DATA_WIDTH{1'b0}};
     end
     else if(wr & |addr_w)
